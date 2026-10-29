@@ -1,7 +1,9 @@
 package main
 
-import "log"
+import (
+	"github.com/permanaa/broadcast-server/internal/cli"
+)
 
 func main() {
-	log.Println("Hello, Universe!")
+	cli.Execute()
 }
