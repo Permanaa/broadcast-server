@@ -8,6 +8,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var clients = make(map[*websocket.Conn]bool)
+
 var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
@@ -22,23 +24,25 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer conn.Close()
 
+	clients[conn] = true
+
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
 			log.Println("Error reading message:", err)
 			break
 		}
-		log.Println("Received message:\n", message)
-		if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
-			log.Println("Error writing message:", err)
-			break
+		log.Println("Received message:", string(message))
+		for clientConn := range clients {
+			if err := clientConn.WriteMessage(websocket.TextMessage, message); err != nil {
+				log.Println("Error writing message:", err)
+				break
+			}
 		}
 	}
 }
 
 func Start(cmd *cobra.Command, args []string) {
-	log.Println("cmd", cmd.Use)
-	log.Println("args", args)
 	http.HandleFunc("/ws", wsHandler)
 	log.Println("Websocket server started on :1804")
 	if err := http.ListenAndServe(":1804", nil); err != nil {
