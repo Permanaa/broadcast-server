@@ -12,7 +12,13 @@ import (
 )
 
 func Connect(cmd *cobra.Command, args []string) {
-	conn, _, err := websocket.DefaultDialer.Dial("ws://localhost:1804/ws", nil)
+	user, err := cmd.Flags().GetString("user")
+	if err != nil {
+		fmt.Println("Error get user flag:", err)
+	}
+
+	url := fmt.Sprintf("ws://localhost:1804/ws?user=%s", user)
+	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
 		log.Fatalf("Error connect to server: %v", err)
 	}
@@ -23,8 +29,10 @@ func Connect(cmd *cobra.Command, args []string) {
 			_, message, err := conn.ReadMessage()
 			if err != nil {
 				fmt.Println("Error read message:", err)
+				conn.Close()
+				break
 			}
-			fmt.Println("Echo:", string(message))
+			fmt.Println(string(message))
 		}
 	}()
 
@@ -48,6 +56,7 @@ func Connect(cmd *cobra.Command, args []string) {
 		}
 
 		if input == "exit" || input == "quit" {
+			conn.Close()
 			fmt.Println("Exiting application. Goodbye!")
 			break
 		}

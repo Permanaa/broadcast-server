@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -17,6 +18,7 @@ var upgrader = websocket.Upgrader{
 }
 
 func wsHandler(w http.ResponseWriter, r *http.Request) {
+	user := r.URL.Query().Get("user")
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println("Error upgrading:", err)
@@ -32,9 +34,10 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 			delete(clients, conn)
 			break
 		}
-		log.Println("Received message:", string(message))
+		log.Printf("[%s] %s", user, string(message))
 		for clientConn := range clients {
-			if err := clientConn.WriteMessage(websocket.TextMessage, message); err != nil {
+			attachUser := fmt.Sprintf("[%s] %s", user, string(message))
+			if err := clientConn.WriteMessage(websocket.TextMessage, []byte(attachUser)); err != nil {
 				clientConn.Close()
 				delete(clients, conn)
 				break
