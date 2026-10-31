@@ -12,6 +12,6 @@ var connectCmd = &cobra.Command{
 }
 
 func init() {
-	connectCmd.Flags().String("user", "", "username to show in text message")
+	connectCmd.Flags().StringP("user", "u", "", "username to show in text message")
 	rootCmd.AddCommand(connectCmd)
 }
