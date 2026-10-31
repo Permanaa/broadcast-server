@@ -29,13 +29,14 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			log.Println("Error reading message:", err)
+			delete(clients, conn)
 			break
 		}
 		log.Println("Received message:", string(message))
 		for clientConn := range clients {
 			if err := clientConn.WriteMessage(websocket.TextMessage, message); err != nil {
-				log.Println("Error writing message:", err)
+				clientConn.Close()
+				delete(clients, conn)
 				break
 			}
 		}
