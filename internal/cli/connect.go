@@ -8,7 +8,7 @@ import (
 var connectCmd = &cobra.Command{
 	Use:   "connect",
 	Short: "Connect the client to the server.",
-	Run:   server.Connect,
+	Run:   server.ConnectWithBubbleTea,
 }
 
 func init() {
